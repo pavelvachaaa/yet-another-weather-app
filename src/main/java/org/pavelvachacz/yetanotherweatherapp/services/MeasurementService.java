@@ -1,6 +1,6 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
-import org.pavelvachacz.yetanotherweatherapp.daos.MeasurementDAO;
+import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.MeasurementDAO;
 import org.pavelvachacz.yetanotherweatherapp.models.Measurement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

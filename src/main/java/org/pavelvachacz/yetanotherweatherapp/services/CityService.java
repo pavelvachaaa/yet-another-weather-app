@@ -1,6 +1,6 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
-import org.pavelvachacz.yetanotherweatherapp.daos.CityDAO;
+import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.CityDAO;
 import org.pavelvachacz.yetanotherweatherapp.models.City;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;

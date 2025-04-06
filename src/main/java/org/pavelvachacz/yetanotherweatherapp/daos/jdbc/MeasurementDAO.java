@@ -1,4 +1,4 @@
-package org.pavelvachacz.yetanotherweatherapp.daos;
+package org.pavelvachacz.yetanotherweatherapp.daos.jdbc;
 
 import org.pavelvachacz.yetanotherweatherapp.mappers.MeasurementMapper;
 import org.pavelvachacz.yetanotherweatherapp.models.Measurement;

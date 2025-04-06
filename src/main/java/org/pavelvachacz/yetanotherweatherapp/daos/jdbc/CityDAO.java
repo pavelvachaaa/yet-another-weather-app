@@ -1,6 +1,5 @@
-package org.pavelvachacz.yetanotherweatherapp.daos;
+package org.pavelvachacz.yetanotherweatherapp.daos.jdbc;
 import org.pavelvachacz.yetanotherweatherapp.mappers.CityMapper;
-import org.pavelvachacz.yetanotherweatherapp.mappers.CountryMapper;
 import org.pavelvachacz.yetanotherweatherapp.models.City;
 import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.stereotype.Repository;

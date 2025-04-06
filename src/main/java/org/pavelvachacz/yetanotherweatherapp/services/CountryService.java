@@ -1,12 +1,9 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
 
-import org.pavelvachacz.yetanotherweatherapp.daos.CityDAO;
-import org.pavelvachacz.yetanotherweatherapp.daos.CountryDAO;
-import org.pavelvachacz.yetanotherweatherapp.daos.MeasurementDAO;
+import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.CountryDAO;
 import org.pavelvachacz.yetanotherweatherapp.models.Country;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
