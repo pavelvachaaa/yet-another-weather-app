@@ -2,10 +2,12 @@ package org.pavelvachacz.yetanotherweatherapp.daos;
 
 import org.pavelvachacz.yetanotherweatherapp.mappers.CountryMapper;
 import org.pavelvachacz.yetanotherweatherapp.models.Country;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.namedparam.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import lombok.RequiredArgsConstructor;
 
@@ -17,24 +19,42 @@ public class CountryDAO {
     private final CountryMapper countryMapper;
 
     // Queries
-    public List<Country> getCountries(){
+    public List<Country> getCountries() {
         return jdbc.query("SELECT * FROM Country", countryMapper);
     }
 
-    public Country getCountry(int id){
+    public Optional<Country> getCountry(int id) {
         MapSqlParameterSource params = new MapSqlParameterSource("id", id);
-        return jdbc.queryForObject("SELECT * FROM Country WHERE id = :id", params, countryMapper);
+        try {
+            Country country = jdbc.queryForObject(
+                    "SELECT * FROM Country WHERE id = :id",
+                    params,
+                    countryMapper
+            );
+            return Optional.ofNullable(country);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
-    public Country getCountry(String name){
+    public Optional<Country> getCountry(String name) {
         MapSqlParameterSource params = new MapSqlParameterSource("name", name);
-        return jdbc.queryForObject("SELECT * FROM Country WHERE name = :name", params, countryMapper);
+        try {
+            Country country = jdbc.queryForObject(
+                    "SELECT * FROM Country WHERE name = :name",
+                    params,
+                    countryMapper
+            );
+            return Optional.ofNullable(country);
+        } catch (EmptyResultDataAccessException e) {
+            return Optional.empty();
+        }
     }
 
     // Updates
     public boolean update(Country country) {
         BeanPropertySqlParameterSource params = new BeanPropertySqlParameterSource(country);
-        return jdbc.update("UPDATE Country SET name = :name where id = :id", params) == 1;
+        return jdbc.update("UPDATE Country SET name = :name WHERE id = :id", params) == 1;
     }
 
     // Inserts
