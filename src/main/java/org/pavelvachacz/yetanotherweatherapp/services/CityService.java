@@ -33,5 +33,33 @@ public class CityService {
         return cityDAO.getCity(name);
     }
 
+    // Create a new city
+    public boolean createCity(City city) {
+        return cityDAO.create(city);
+    }
 
+    // Create multiple cities in batch
+    public int[] createCities(List<City> cities) {
+        return cityDAO.create(cities);
+    }
+
+    // Update an existing city
+    public boolean updateCity(City city) {
+        return cityDAO.update(city);
+    }
+
+    public boolean partialUpdateCity(int id, City cityUpdate) {
+        // First check if the city exists
+        Optional<City> existingCity = cityDAO.getCity(id);
+        if (existingCity.isEmpty()) {
+            return false;
+        }
+
+        // Perform the partial update
+        return cityDAO.partialUpdate(id, cityUpdate);
+    }
+    // Delete a city by ID
+    public boolean deleteCity(int id) {
+        return cityDAO.delete(id);
+    }
 }
