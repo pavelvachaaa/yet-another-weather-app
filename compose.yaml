@@ -1,9 +1,0 @@
-services:
-  mysql:
-    image: 'mysql:latest'
-    env_file: .env
-    environment:
-      - MYSQL_DATABASE=yet_another_weather_app
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
-    ports:
-      - '3306:3306'
