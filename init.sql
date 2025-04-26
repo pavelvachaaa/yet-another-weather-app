@@ -39,3 +39,14 @@ CREATE INDEX idx_measurement_datetime ON Measurement(datetime);
 CREATE INDEX idx_measurement_weather ON Measurement(weather);
 
 
+INSERT INTO Country(id, name)
+VALUES (1, 'Czech'),
+       (2, 'Germany'),
+       (3, 'Denmark');
+
+INSERT INTO City(id, name, longitude, latitude, country_id)
+VALUES (1, 'Prague', 14.42076, 50.088039, 1),
+       (2, 'Liberec', 15.05619, 50.767109, 1),
+       (3, 'Berlin', 13.41053, 52.524368, 3),
+       (4, 'London', -0.12574, 51.50853, 2),
+       (5, 'Copenhagen', 14.83333, 50.900002, 3);

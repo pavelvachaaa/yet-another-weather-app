@@ -1,55 +1,104 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
-import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.MeasurementDAO;
+import org.pavelvachacz.yetanotherweatherapp.dtos.MeasurementAggregateDTO;
+import org.pavelvachacz.yetanotherweatherapp.exceptions.CityNotFoundException;
+import org.pavelvachacz.yetanotherweatherapp.models.City;
 import org.pavelvachacz.yetanotherweatherapp.models.Measurement;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.pavelvachacz.yetanotherweatherapp.repositories.CityRepository;
+import org.pavelvachacz.yetanotherweatherapp.repositories.MeasurementRepository;
+import org.pavelvachacz.yetanotherweatherapp.vendor.owm.WeatherService;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class MeasurementService {
 
-    private final MeasurementDAO measurementDAO;
+    private final MeasurementRepository measurementRepository;
+    private final CityRepository cityRepository;
+    private final WeatherService weatherService;
 
-    @Autowired
-    public MeasurementService(MeasurementDAO measurementDAO) {
-        this.measurementDAO = measurementDAO;
+    public MeasurementService(MeasurementRepository measurementRepository,
+                              CityRepository cityRepository,
+                              WeatherService weatherService) {
+        this.measurementRepository = measurementRepository;
+        this.cityRepository = cityRepository;
+        this.weatherService = weatherService;
     }
 
-    // Get all measurements
-    public List<Measurement> getAllMeasurements() {
-        return measurementDAO.getMeasurements();
+    public List<Measurement> getMeasurements() {
+        return StreamSupport.stream(measurementRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
     }
 
-    // Get measurements by city id
-    public List<Measurement> getMeasurementsByCityId(int cityId) {
-        return measurementDAO.getMeasurementsByCityId(cityId);
+    public List<Measurement> getMeasurementsByCityName(String cityName) {
+        City city = findCityByNameOrThrow(cityName);
+        return measurementRepository.findByCityId(city.getId());
     }
 
-    // Get measurement by ID
-    public Optional<Measurement> getMeasurementById(int id) {
-        return Optional.ofNullable(measurementDAO.getMeasurementById(id));
+    public Measurement getLatestMeasurement(String cityName) {
+        City city = updateMeasurements(cityName);
+        Pageable pageable = PageRequest.of(0, 1);
+        List<Measurement> latestMeasurements = measurementRepository.findLatestMeasurement(city.getId(), pageable);
+        if (latestMeasurements.isEmpty()) {
+            throw new RuntimeException("No measurements found for city: " + cityName);
+        }
+        return latestMeasurements.get(0);
     }
 
-    // Create a new measurement
-    public boolean createMeasurement(Measurement measurement) {
-        return measurementDAO.create(measurement);
+    public MeasurementAggregateDTO getWeeklyAverage(String cityName) {
+        City city = updateMeasurements(cityName);
+        Pageable pageable = PageRequest.of(0, 1);
+        List<MeasurementAggregateDTO> aggregates = measurementRepository.findWeeklyAverage(city.getId(), pageable);
+        if (aggregates.isEmpty()) {
+            throw new RuntimeException("No weekly average found for city: " + cityName);
+        }
+        return aggregates.get(0);
     }
 
-    // Create a batch of measurements
-    public int[] createMeasurements(List<Measurement> measurements) {
-        return measurementDAO.create(measurements);
+    public MeasurementAggregateDTO getDailyAverage(String cityName) {
+        City city = updateMeasurements(cityName);
+        Pageable pageable = PageRequest.of(0, 1);
+        List<MeasurementAggregateDTO> aggregates = measurementRepository.findDailyAverage(city.getId(), pageable);
+        if (aggregates.isEmpty()) {
+            throw new RuntimeException("No daily average found for city: " + cityName);
+        }
+        return aggregates.get(0);
     }
 
-    // Update a measurement
-    public boolean updateMeasurement(Measurement measurement) {
-        return measurementDAO.update(measurement);
+    private City updateMeasurements(String cityName) {
+        City city = findCityByNameOrThrow(cityName);
+
+        Long end = LocalDateTime.now().toEpochSecond(ZoneOffset.UTC);
+        Long start = LocalDateTime.now().minusDays(7).toEpochSecond(ZoneOffset.UTC);
+
+        weatherService.updateMeasurements(city, start, end);
+        return city;
     }
 
-    // Delete a measurement by ID
-    public boolean deleteMeasurement(int id) {
-        return measurementDAO.delete(id);
+    public void save(Measurement measurement) {
+        measurementRepository.save(measurement);
+    }
+
+    public void delete(Measurement measurement) {
+        measurementRepository.delete(measurement);
+    }
+
+    public void deleteByCity(String cityName) {
+        City city = findCityByNameOrThrow(cityName);
+        measurementRepository.deleteByCityId(city.getId());
+    }
+
+    private City findCityByNameOrThrow(String cityName) {
+        return cityRepository.findByName(cityName)
+                .orElseThrow(() -> new CityNotFoundException("City not found: " + cityName));
     }
 }

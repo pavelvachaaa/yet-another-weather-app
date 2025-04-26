@@ -1,20 +1,40 @@
 package org.pavelvachacz.yetanotherweatherapp.models;
 
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import org.springframework.data.annotation.Id;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
-@Data
+import java.util.List;
+
+@Getter
+@Setter
+@ToString(exclude = {"country", "measurements"})
+@EqualsAndHashCode(exclude = "country")
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table(name="City")
 public class City {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
+    @Column(unique=true)
     private String name;
-    private double longitude;
-    private double latitude;
-    private int country_id;
+
+    private Double longitude;
+    private Double latitude;
+
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "country_id", nullable = false)
+    private Country country;
+
+    @OneToMany(mappedBy = "city")
+    @JsonIgnore
+    private List<Measurement> measurements;
+
 }

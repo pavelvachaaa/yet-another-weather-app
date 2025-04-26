@@ -1,18 +1,27 @@
 package org.pavelvachacz.yetanotherweatherapp.models;
 
 
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.data.annotation.Id;
+import lombok.ToString;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@ToString(exclude = "city")
+@Entity
+@Table(name = "Measurement")
 public class Measurement {
+
     @Id
-    private int id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
     private LocalDateTime datetime;
     private double temp;
     private int pressure;
@@ -23,5 +32,10 @@ public class Measurement {
     private String weather_desc;
     private double wind_speed;
     private int wind_deg;
-    private int city_id;
+
+    @ManyToOne
+    @OnDelete(action = OnDeleteAction.CASCADE)
+    @JoinColumn(name = "City_id")
+    private City city;
+
 }

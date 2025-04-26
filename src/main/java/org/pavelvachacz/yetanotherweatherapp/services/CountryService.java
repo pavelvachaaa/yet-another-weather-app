@@ -1,48 +1,56 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
-
-import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.CountryDAO;
+import org.pavelvachacz.yetanotherweatherapp.exceptions.CountryNotFoundException;
 import org.pavelvachacz.yetanotherweatherapp.models.Country;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.pavelvachacz.yetanotherweatherapp.repositories.CountryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class CountryService {
-    private final CountryDAO countryDAO;
 
-    @Autowired
-    public CountryService(CountryDAO countryDAO) {
-        this.countryDAO = countryDAO;
+    private final CountryRepository countryRepository;
+
+    public CountryService(CountryRepository countryRepository) {
+        this.countryRepository = countryRepository;
     }
 
-    public List<Country> getAllCountries() {
-        return countryDAO.getCountries();
+    public List<Country> getCountries() {
+        return StreamSupport.stream(countryRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
     }
 
-    public Optional<Country> getCountryById(int id) {
-       return countryDAO.getCountry(id);
+    public Country getCountryByName(String name) {
+        return countryRepository.findByName(name)
+                .orElseThrow(() -> new CountryNotFoundException("Country not found: " + name));
     }
 
-    public Optional<Country> getCountryByName(String name) {
-        return countryDAO.getCountry(name);
+    public Country getCountryById(int id) {
+        return countryRepository.findById(id)
+                .orElseThrow(() -> new CountryNotFoundException("Country not found with ID: " + id));
     }
 
-    public boolean createCountry(Country country) {
-        return countryDAO.create(country);
+    public Country createCountry(Country country) {
+        return countryRepository.save(country);
     }
 
-    public int[] createCountries(List<Country> countries) {
-        return countryDAO.create(countries);
+    public Country updateCountry(int id, Country countryUpdate) {
+        Country country = countryRepository.findById(id)
+                .orElseThrow(() -> new CountryNotFoundException("Country not found with ID: " + id));
+
+        if (countryUpdate.getName() != null) {
+            country.setName(countryUpdate.getName());
+        }
+
+        return countryRepository.save(country);
     }
 
-    public boolean updateCountry(Country country) {
-        return countryDAO.update(country);
-    }
-
-    public boolean deleteCountry(int id) {
-        return countryDAO.delete(id);
+    public void deleteCountryById(int id) {
+        Country country = countryRepository.findById(id)
+                .orElseThrow(() -> new CountryNotFoundException("Country not found with ID: " + id));
+        countryRepository.delete(country);
     }
 }

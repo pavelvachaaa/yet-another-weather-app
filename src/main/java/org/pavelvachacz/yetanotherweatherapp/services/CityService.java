@@ -1,65 +1,80 @@
 package org.pavelvachacz.yetanotherweatherapp.services;
 
-import org.pavelvachacz.yetanotherweatherapp.daos.jdbc.CityDAO;
+import jakarta.transaction.Transactional;
+import org.pavelvachacz.yetanotherweatherapp.exceptions.CityNotFoundException;
+import org.pavelvachacz.yetanotherweatherapp.exceptions.CountryNotFoundException;
 import org.pavelvachacz.yetanotherweatherapp.models.City;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.pavelvachacz.yetanotherweatherapp.models.Country;
+import org.pavelvachacz.yetanotherweatherapp.repositories.CityRepository;
+import org.pavelvachacz.yetanotherweatherapp.repositories.CountryRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 @Service
 public class CityService {
 
-    private final CityDAO cityDAO;
+    private final CityRepository cityRepository;
+    private final CountryRepository countryRepository;
 
-    @Autowired
-    public CityService(CityDAO cityDAO) {
-        this.cityDAO = cityDAO;
+    public CityService(CityRepository cityRepository, CountryRepository countryRepository) {
+        this.cityRepository = cityRepository;
+        this.countryRepository = countryRepository;
     }
 
-    // Get all cities
-    public List<City> getAllCities() {
-        return cityDAO.getCities();
+    public List<City> getCities() {
+        return StreamSupport.stream(cityRepository.findAll().spliterator(), false)
+                .collect(Collectors.toList());
     }
 
-    // Get city by ID
-    public Optional<City> getCityById(int id) {
-        return cityDAO.getCity(id);
+    public City getCityByName(String name) {
+        return cityRepository.findByName(name)
+                .orElseThrow(() -> new CityNotFoundException("City not found: " + name));
     }
 
-    // Get city by name
-    public Optional<City>  getCityByName(String name) {
-        return cityDAO.getCity(name);
+    public City getCityById(int id) {
+        return cityRepository.findById(id)
+                .orElseThrow(() -> new CityNotFoundException("City not found with ID: " + id));
     }
 
-    // Create a new city
-    public boolean createCity(City city) {
-        return cityDAO.create(city);
+    public City createCity(City city) {
+        return cityRepository.save(city);
     }
 
-    // Create multiple cities in batch
-    public int[] createCities(List<City> cities) {
-        return cityDAO.create(cities);
-    }
+    @Transactional
+    public City updateCity(int id, City cityUpdate) {
+        City city = cityRepository.findById(id)
+                .orElseThrow(() -> new CityNotFoundException("City not found with ID: " + id));
 
-    // Update an existing city
-    public boolean updateCity(City city) {
-        return cityDAO.update(city);
-    }
-
-    public boolean partialUpdateCity(int id, City cityUpdate) {
-        // First check if the city exists
-        Optional<City> existingCity = cityDAO.getCity(id);
-        if (existingCity.isEmpty()) {
-            return false;
+        if (cityUpdate.getName() != null) {
+            city.setName(cityUpdate.getName());
+        }
+        if (cityUpdate.getLatitude() != null) {
+            city.setLatitude(cityUpdate.getLatitude());
+        }
+        if (cityUpdate.getLongitude() != null) {
+            city.setLongitude(cityUpdate.getLongitude());
+        }
+        if (cityUpdate.getCountry() != null && cityUpdate.getCountry().getId() != null) {
+            Country country = countryRepository.findById(cityUpdate.getCountry().getId())
+                    .orElseThrow(() -> new CountryNotFoundException("Country not found with ID: " + cityUpdate.getCountry().getId()));
+            city.setCountry(country);
         }
 
-        // Perform the partial update
-        return cityDAO.partialUpdate(id, cityUpdate);
+        return cityRepository.save(city);
     }
-    // Delete a city by ID
-    public boolean deleteCity(int id) {
-        return cityDAO.delete(id);
+
+    public void deleteCityById(int id) {
+        City city = cityRepository.findById(id)
+                .orElseThrow(() -> new CityNotFoundException("City not found with ID: " + id));
+        cityRepository.delete(city);
+    }
+
+    public void deleteCityByName(String name) {
+        City city = cityRepository.findByName(name)
+                .orElseThrow(() -> new CityNotFoundException("City not found: " + name));
+        cityRepository.delete(city);
     }
 }
