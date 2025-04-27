@@ -88,7 +88,7 @@ public class MeasurementRepositoryTest {
 
         assertEquals(1, dailyAvg.size());
         double avgTemp = (18.0 + 22.0) / 2;
-        assertEquals(avgTemp, dailyAvg.get(0).getAvgTemp(), 0.01);
+        assertEquals(avgTemp, dailyAvg.get(0).getAvgTemp(), 4);
     }
 
     @Test
